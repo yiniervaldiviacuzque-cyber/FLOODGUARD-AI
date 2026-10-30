@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FLOODGUARD AI | Perú</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+<style>
+:root {
+ --bg:#071321;--panel:#10243a;--border:#263d55;
+ --text:#eaf4ff;--muted:#8da7c1;--cyan:#36c9eb;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,sans-serif}
+header{height:72px;background:#0c1d30;border-bottom:1px solid var(--border);
+ display:flex;align-items:center;justify-content:space-between;padding:0 25px;gap:15px}
+.brand{font-size:20px;font-weight:800;letter-spacing:.5px}
+.brand span{color:var(--cyan)}
+.online{color:#52dca6;font-size:12px}
+.layout{display:grid;grid-template-columns:255px 1fr;min-height:calc(100vh - 72px)}
+.sidebar{background:#0b1b2c;border-right:1px solid var(--border);padding:23px 16px}
+.side-title{font-size:10px;letter-spacing:1.5px;color:#68829e;margin:12px 9px}
+.nav{display:block;color:#a5bad0;padding:13px 12px;border-radius:8px;
+ text-decoration:none;font-size:13px;margin:4px 0}
+.nav:hover,.nav.active{background:#173751;color:#5ed9f4}
+.side-note{margin-top:35px;padding:14px;background:#102c37;border:1px solid #24534e;border-radius:9px;font-size:11px;color:#a4c7c4;line-height:1.7}
+main{padding:25px;min-width:0;max-width:1600px;width:100%;margin:auto}
+.heading{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}
+h1{font-size:25px;margin:0 0 7px}
+.subtitle{font-size:12px;color:var(--muted)}
+select,button{background:#17334b;color:white;border:1px solid #35536c;border-radius:8px;padding:11px 13px;font-size:12px}
+button{cursor:pointer;background:#078fb4;border:0;font-weight:bold}
+button:hover{background:#10afd5}
+.section-title{font-size:15px;margin:25px 0 13px}
+.tag{font-size:10px;color:#f3c66d;background:#352c1c;border:1px solid #67502b;border-radius:20px;padding:7px 10px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:17px;min-width:0}
+.metric-label{font-size:10px;color:#9cb2c8;letter-spacing:.7px}
+.metric-value{font-size:28px;font-weight:800;margin:12px 0 5px}
+.metric-desc{font-size:10px;color:#7893ae}
+.two{display:grid;grid-template-columns:1.5fr 1fr;gap:13px;margin-top:14px}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+.panel-head h3{font-size:14px;margin:0}
+.panel-head small{color:var(--muted);font-size:10px}
+#map{height:490px;width:100%;border-radius:9px;background:#162b3c;z-index:1}
+.map-actions{display:flex;gap:7px;flex-wrap:wrap}
+.map-actions button{padding:8px 10px;font-size:10px;background:#1c3c55}
+#forecastChart{width:100%;height:180px}
+.weather-main{font-size:35px;font-weight:bold;margin:15px 0}
+.weather-detail{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.weather-detail div{background:#172d43;padding:11px;border-radius:8px}
+.weather-detail small{display:block;color:#8fa8c1;font-size:10px;margin-bottom:7px}
+.weather-detail b{font-size:16px}
+.weather-source{font-size:10px;color:#8fa8c1;line-height:1.5;margin-top:12px}
+.risk-value{font-size:32px;font-weight:bold;margin:15px 0 5px}
+.bar{height:9px;background:#263c52;border-radius:20px;overflow:hidden;margin:14px 0}
+#riskBar{height:100%;width:0;background:#4bd8a0;transition:.4s}
+#scene3d{width:100%;height:330px;display:block;border-radius:9px;background:#071c30}
+.controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:13px}
+.controls label{font-size:11px;color:#a9bfd4}
+input[type=range]{accent-color:#30c6e7;width:170px}
+.note{font-size:10px;color:#809ab3;line-height:1.6;margin-top:12px}
+.footer{padding:25px 0 5px;color:#718ba5;font-size:10px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#10243a;color:white}
+.leaflet-control-attribution{font-size:9px}
+@media(max-width:1050px){
+ .layout{grid-template-columns:190px 1fr}
+ .grid{grid-template-columns:repeat(2,1fr)}
+ .two{grid-template-columns:1fr}
+}
+@media(max-width:700px){
+ header{padding:0 14px}.layout{display:block}
+ .sidebar{display:none}main{padding:17px 12px}
+ h1{font-size:21px}#map{height:370px}
+ .grid{gap:8px}.card{padding:12px}
+ .metric-value{font-size:23px}
+}
+
+/* PANEL METEOROLÓGICO NACIONAL */
+.national-panel{margin:18px 0;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:17px;min-width:0}
+.national-table-wrap{overflow-x:auto}
+.national-table{width:100%;border-collapse:collapse;min-width:680px;font-size:12px}
+.national-table th{text-align:left;color:#8da7c1;font-size:10px;padding:12px 9px;border-bottom:1px solid var(--border)}
+.national-table td{padding:12px 9px;border-bottom:1px solid #263d554d}
+.national-table tbody tr{cursor:pointer}
+.national-table tbody tr:hover{background:#1b3a52}
+.national-table td:first-child{font-weight:700;color:#eaf4ff}
+.national-status{font-size:11px;color:#8da7c1;margin:10px 0}
+.national-temp{font-weight:800;color:#45cbea}
+.national-refresh{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+
+
+/* CENTRO NACIONAL DE ALERTAS */
+.risk-center-panel{margin:20px 0;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px}
+.risk-summary-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:11px;margin:15px 0}
+.risk-summary-card{background:#172d43;border:1px solid var(--border);border-radius:10px;padding:15px;min-width:0}
+.risk-summary-card small{display:block;color:var(--muted);font-size:10px;margin-bottom:9px}
+.risk-summary-card strong{font-size:25px;font-weight:800}
+.risk-summary-card .risk-caption{font-size:10px;color:var(--muted);margin-top:5px}
+.risk-low{color:#4bd8a0}
+.risk-medium{color:#f1c45f}
+.risk-high{color:#ff9854}
+.risk-critical{color:#ff5c72}
+.risk-unknown{color:#9bb2c9}
+.risk-filters{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:17px 0}
+.risk-filters select{min-width:165px}
+.risk-table-wrap{overflow-x:auto}
+.risk-table{width:100%;min-width:760px;border-collapse:collapse;font-size:12px}
+.risk-table th{text-align:left;color:var(--muted);font-size:10px;padding:12px 9px;border-bottom:1px solid var(--border)}
+.risk-table td{padding:13px 9px;border-bottom:1px solid #263d554d}
+.risk-table tbody tr{cursor:pointer}
+.risk-table tbody tr:hover{background:#1b3a52}
+.risk-table td:first-child{font-weight:700}
+.risk-pill{display:inline-block;padding:5px 9px;border-radius:20px;font-size:10px;font-weight:800;background:#263b50}
+.risk-pill.BAJO{color:#4bd8a0;background:#163c35}
+.risk-pill.MEDIO{color:#f1c45f;background:#44391f}
+.risk-pill.ALTO{color:#ff9854;background:#493021}
+.risk-pill.CRÍTICO{color:#ff7184;background:#482431}
+.risk-pill.SIN-DATOS{color:#a9bfd4;background:#263b50}
+.risk-index{font-weight:800;color:#45cbea}
+.risk-center-status{font-size:11px;color:var(--muted);margin:12px 0}
+.risk-notice{font-size:10px;color:#91a9c0;line-height:1.7;margin-top:14px}
+.risk-alert-box{padding:13px;border:1px solid #5b482b;background:#302a20;border-radius:9px;margin:12px 0;font-size:11px;color:#f0cf8a}
+@media(max-width:1050px){.risk-summary-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:600px){.risk-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.risk-summary-card{padding:12px}.risk-summary-card strong{font-size:22px}.risk-filters select{width:100%}}
+
+
+.sources-panel{
+ background:#10243a;border:1px solid #29435e;border-radius:14px;
+ padding:20px;margin:16px 0
+}
+.source-grid{
+ display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+ gap:12px;margin-top:16px
+}
+.source-card{
+ display:flex;flex-direction:column;gap:9px;text-decoration:none;
+ color:#e8f3fc;background:#172e46;border:1px solid #294b68;
+ border-radius:11px;padding:15px;transition:.2s
+}
+.source-card:hover{
+ border-color:#27b8df;transform:translateY(-2px);
+ background:#1b3853
+}
+.source-card b{font-size:14px}
+.source-card span{font-size:12px;color:#b1c5d8;line-height:1.5}
+.source-card small{font-size:10px;color:#42c8ed;font-weight:bold}
+.sim-controls{
+ display:grid;gap:9px;background:#172d43;border-radius:10px;
+ padding:15px;margin-top:15px
+}
+.sim-controls label{font-size:12px;color:#b7cadd}
+.sim-controls label b{color:#42c8ed}
+.sim-controls input{width:100%;accent-color:#27b8df}
+
+</style>
+</head>
+
+<body>
+<header>
+ <div class="brand">🌊 FLOODGUARD <span>AI</span></div>
+ <div class="online">● SISTEMA EN LÍNEA</div>
+</header>
+
+<div class="layout">
+<aside class="sidebar">
+ <div class="side-title">PLATAFORMA NACIONAL</div>
+ <a class="nav active" href="#inicio">▦ Dashboard nacional</a>
+ <a class="nav" href="#mapa-section">🌎 Mapa satelital</a>
+ <a class="nav" href="#clima">🌦️ Clima y pronóstico</a>
+ <a class="nav" href="#fuentes">🔎 Fuentes oficiales</a>
+ <a class="nav" href="#riesgo">⚠️ Riesgo de inundación</a>
+ <a class="nav" href="#centro-alertas">🚨 Centro de alertas</a>
+ <a class="nav" href="#simulacion3d">◈ Simulación 3D</a>
+
+ <div class="side-note">
+  <b>FLOODGUARD AI 3.0</b><br>
+  Monitoreo demostrativo del territorio peruano.<br><br>
+  <span style="color:#52dca6">● API local disponible</span>
+ </div>
+</aside>
+
+<main id="inicio">
+ <div class="heading">
+  <div>
+   <h1>Centro Nacional de Monitoreo</h1>
+   <div class="subtitle">Vigilancia ambiental y escenarios de inundación en el Perú</div>
+  </div>
+  <div>
+   <select id="department">
+    <option value="Lima">Lima</option>
+    <option value="Amazonas">Amazonas</option>
+    <option value="Áncash">Áncash</option>
+    <option value="Apurímac">Apurímac</option>
+    <option value="Arequipa">Arequipa</option>
+    <option value="Ayacucho">Ayacucho</option>
+    <option value="Cajamarca">Cajamarca</option>
+    <option value="Callao">Callao</option>
+    <option value="Cusco">Cusco</option>
+    <option value="Huancavelica">Huancavelica</option>
+    <option value="Huánuco">Huánuco</option>
+    <option value="Ica">Ica</option>
+    <option value="Junín">Junín</option>
+    <option value="La Libertad">La Libertad</option>
+    <option value="Lambayeque">Lambayeque</option>
+    <option value="Loreto">Loreto</option>
+    <option value="Madre de Dios">Madre de Dios</option>
+    <option value="Moquegua">Moquegua</option>
+    <option value="Pasco">Pasco</option>
+    <option value="Piura">Piura</option>
+    <option value="Puno">Puno</option>
+    <option value="San Martín">San Martín</option>
+    <option value="Tacna">Tacna</option>
+    <option value="Tumbes">Tumbes</option>
+    <option value="Ucayali">Ucayali</option>
+   </select>
+  </div>
+ </div>
+
+ <p><span class="tag">MONITOREO METEOROLÓGICO · PERÚ</span></p>
+
+ <h2 class="section-title">Indicadores del departamento seleccionado</h2>
+ <section class="grid">
+  <article class="card"><div class="metric-label">🌡️ TEMPERATURA ACTUAL</div><div class="metric-value" id="temperature">-- °C</div><div class="metric-desc">Open-Meteo · estimación de modelo</div></article>
+  <article class="card"><div class="metric-label">🌧️ PRECIPITACIÓN ACTUAL</div><div class="metric-value" id="rain">-- mm</div><div class="metric-desc">Open-Meteo · estimación de modelo</div></article>
+  <article class="card"><div class="metric-label">💧 HUMEDAD RELATIVA</div><div class="metric-value" id="humidity">-- %</div><div class="metric-desc">Open-Meteo · estimación de modelo</div></article>
+  <article class="card"><div class="metric-label">💨 VIENTO</div><div class="metric-value" id="wind">-- km/h</div><div class="metric-desc">Velocidad a 10 metros</div></article>
+ </section>
+
+ 
+<section class="national-panel" id="clima-nacional">
+  <div class="panel-head">
+    <div>
+      <h3>🇵🇪 Monitoreo meteorológico nacional</h3>
+      <small>Condiciones estimadas para las coordenadas de las 25 capitales departamentales</small>
+    </div>
+    <button id="refreshNational">↻ ACTUALIZAR</button>
+  </div>
+  <div class="national-status" id="nationalStatus">Consultando el servicio meteorológico...</div>
+  <div class="national-table-wrap">
+    <table class="national-table">
+      <thead>
+        <tr>
+          <th>DEPARTAMENTO</th><th>CAPITAL</th><th>TEMPERATURA</th>
+          <th>LLUVIA</th><th>HUMEDAD</th><th>VIENTO</th><th>CONDICIÓN</th>
+        </tr>
+      </thead>
+      <tbody id="nationalWeatherBody">
+        <tr><td colspan="7">Cargando información meteorológica...</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">Fuente: Open-Meteo. Son estimaciones de modelo para las coordenadas de las capitales; no son mediciones directas de estaciones físicas. Para observaciones oficiales consulta el Centro de fuentes.</p>
+</section>
+
+
+
+<section class="sources-panel" id="fuentes">
+ <div class="panel-head">
+  <div>
+   <h3>🔎 CENTRO DE FUENTES OFICIALES DEL PERÚ</h3>
+   <small>Acceso directo a estaciones, datos meteorológicos y recursos hídricos</small>
+  </div>
+  <span class="tag">FUENTES VERIFICABLES</span>
+ </div>
+
+ <div class="source-grid">
+  <a class="source-card" href="https://www.senamhi.gob.pe/servicios/?p=estaciones" target="_blank" rel="noopener noreferrer">
+   <b>🌦️ SENAMHI · Estaciones</b>
+   <span>Consulta estaciones meteorológicas e hidrológicas nacionales.</span>
+   <small>OBSERVACIONES OFICIALES ↗</small>
+  </a>
+  <a class="source-card" href="https://www.senamhi.gob.pe/servicios/main.php?dp=huanuco&p=estaciones" target="_blank" rel="noopener noreferrer">
+   <b>📍 SENAMHI · Huánuco</b>
+   <span>Consulta los registros y estaciones disponibles en Huánuco.</span>
+   <small>CONSULTA REGIONAL ↗</small>
+  </a>
+  <a class="source-card" href="https://www.senamhi.gob.pe/mapas/mapa-estaciones-2/" target="_blank" rel="noopener noreferrer">
+   <b>🗺️ Mapa de estaciones</b>
+   <span>Ubicación de estaciones automáticas y convencionales.</span>
+   <small>MAPA OFICIAL ↗</small>
+  </a>
+  <a class="source-card" href="https://www.datosabiertos.gob.pe/dataset/variables-meteorol%C3%B3gicas-de-las-estaciones-autom%C3%A1ticas-de-intercambio-internacional-servicio" target="_blank" rel="noopener noreferrer">
+   <b>📊 Datos abiertos SENAMHI</b>
+   <span>Registros de temperatura, humedad y precipitación de estaciones automáticas.</span>
+   <small>DESCARGAR / CONSULTAR ↗</small>
+  </a>
+  <a class="source-card" href="https://wis.senamhi.gob.pe/oapi/collections?f=html" target="_blank" rel="noopener noreferrer">
+   <b>🌐 SENAMHI · WIS 2.0</b>
+   <span>Catálogo de intercambio de observaciones sinópticas horarias.</span>
+   <small>SERVICIO METEOROLÓGICO ↗</small>
+  </a>
+  <a class="source-card" href="https://snirh.ana.gob.pe/observatoriosnirh/Index.aspx" target="_blank" rel="noopener noreferrer">
+   <b>🌊 ANA · Observatorio del Agua</b>
+   <span>Información geográfica e hidrológica por cuencas.</span>
+   <small>RECURSOS HÍDRICOS ↗</small>
+  </a>
+  <a class="source-card" href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">
+   <b>☁️ Open-Meteo · Pronóstico</b>
+   <span>Modelo meteorológico, condiciones actuales estimadas y pronósticos.</span>
+   <small>API METEOROLÓGICA ↗</small>
+  </a>
+  <a class="source-card" href="https://archive-api.open-meteo.com/v1/archive" target="_blank" rel="noopener noreferrer">
+   <b>📈 Open-Meteo · Histórico</b>
+   <span>Archivo histórico de variables meteorológicas de modelos.</span>
+   <small>DATOS HISTÓRICOS ↗</small>
+  </a>
+ </div>
+
+ <p class="note">
+  IMPORTANTE: SENAMHI y ANA son las referencias institucionales para observaciones
+  meteorológicas e hidrológicas. Open-Meteo proporciona datos de modelos.
+  Los archivos abiertos pueden tener retrasos y periodos de publicación distintos.
+  No se mostrarán como mediciones en tiempo real si no se ha comprobado su fecha.
+ </p>
+</section>
+
+<section class="risk-center-panel" id="centro-alertas">
+  <div class="panel-head">
+    <div>
+      <h3>🚨 CENTRO NACIONAL DE ALERTAS</h3>
+      <small>Evaluación meteorológica de los 25 departamentos del Perú</small>
+    </div>
+    <button id="refreshRisk">↻ ACTUALIZAR RIESGO</button>
+  </div>
+
+  <div class="risk-center-status" id="riskCenterStatus">
+    Consultando información meteorológica...
+  </div>
+
+  <div class="risk-summary-grid">
+    <article class="risk-summary-card">
+      <small>🟢 RIESGO BAJO</small>
+      <strong class="risk-low" id="countLow">--</strong>
+      <div class="risk-caption">Departamentos</div>
+    </article>
+    <article class="risk-summary-card">
+      <small>🟡 RIESGO MEDIO</small>
+      <strong class="risk-medium" id="countMedium">--</strong>
+      <div class="risk-caption">Departamentos</div>
+    </article>
+    <article class="risk-summary-card">
+      <small>🟠 RIESGO ALTO</small>
+      <strong class="risk-high" id="countHigh">--</strong>
+      <div class="risk-caption">Departamentos</div>
+    </article>
+    <article class="risk-summary-card">
+      <small>🔴 RIESGO CRÍTICO</small>
+      <strong class="risk-critical" id="countCritical">--</strong>
+      <div class="risk-caption">Departamentos</div>
+    </article>
+    <article class="risk-summary-card">
+      <small>🚨 ALERTAS ACTIVAS</small>
+      <strong id="countAlerts">--</strong>
+      <div class="risk-caption">Nivel alto o crítico</div>
+    </article>
+  </div>
+
+  <div id="riskAlertMessage" class="risk-alert-box">
+    Esperando información de alertas...
+  </div>
+
+  <h3 style="font-size:13px;margin:20px 0 10px">📊 Evaluación por departamento</h3>
+
+  <div class="risk-filters">
+    <select id="riskDepartmentFilter">
+      <option value="">Todos los departamentos</option>
+    </select>
+    <select id="riskLevelFilter">
+      <option value="">Todos los niveles</option>
+      <option value="BAJO">Riesgo bajo</option>
+      <option value="MEDIO">Riesgo medio</option>
+      <option value="ALTO">Riesgo alto</option>
+      <option value="CRÍTICO">Riesgo crítico</option>
+      <option value="SIN DATOS">Sin datos</option>
+    </select>
+    <button id="clearRiskFilters" type="button">LIMPIAR FILTROS</button>
+  </div>
+
+  <div class="risk-table-wrap">
+    <table class="risk-table">
+      <thead>
+        <tr>
+          <th>DEPARTAMENTO</th>
+          <th>CAPITAL</th>
+          <th>ÍNDICE</th>
+          <th>NIVEL</th>
+          <th>LLUVIA 6H</th>
+          <th>PROB. LLUVIA</th>
+        </tr>
+      </thead>
+      <tbody id="riskDepartmentBody">
+        <tr><td colspan="6">Cargando departamentos...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="risk-center-status" id="riskTableStatus"></div>
+
+  <p class="risk-notice">
+    Fuente: Open-Meteo. El índice es orientativo y se calcula con precipitación
+    prevista y probabilidad de lluvia para las próximas 6 horas. Los datos
+    corresponden a las coordenadas de las capitales departamentales, no a
+    mediciones de todas las zonas de cada departamento. No mide caudales ni
+    niveles de ríos, no calcula inundaciones y no constituye una alerta oficial.
+  </p>
+</section>
+
+<section class="two" id="mapa-section">
+  <article class="card">
+   <div class="panel-head">
+    <div><h3>🌎 Mapa satelital del Perú</h3><small>Selecciona un departamento en el mapa</small></div>
+    <div class="map-actions">
+     <button id="satellite">SATÉLITE</button>
+     <button id="street">CALLES</button>
+     <button id="peru">VER PERÚ</button>
+    </div>
+   </div>
+   <div id="map"></div>
+   <p class="note">Imágenes satelitales de Esri. Los límites departamentales son una capa geográfica de referencia; no representan zonas inundables.</p>
+  </article>
+
+  <article class="card" id="clima">
+   <div class="panel-head">
+    <div><h3>🌦️ Clima del departamento</h3><small id="weatherLocation">Consultando...</small></div>
+   </div>
+   <div class="weather-main" id="weatherDescription">--</div>
+   <div class="weather-detail">
+    <div><small>Probabilidad de lluvia</small><b id="probability">-- %</b></div>
+    <div><small>Temperatura aparente</small><b id="feels">-- °C</b></div>
+    <div><small>Presión atmosférica</small><b id="pressure">-- hPa</b></div>
+    <div><small>Ráfagas de viento</small><b id="gust">-- km/h</b></div>
+   </div>
+   <p class="weather-source" id="weatherSource">Fuente: Open-Meteo. Esperando respuesta.</p>
+   <div class="panel-head" style="margin-top:22px"><h3>Pronóstico de precipitación</h3><small>Próximas horas</small></div>
+   <canvas id="forecastChart"></canvas>
+  </article>
+ </section>
+
+ <section class="two" id="riesgo">
+  <article class="card">
+   <div class="panel-head"><div><h3>⚠️ Índice de riesgo demostrativo</h3><small>Generado por simulación local</small></div><span class="tag">SIMULADO</span></div>
+   <div class="risk-value" id="risk">--</div>
+   <div id="riskText" class="subtitle">Esperando simulación...</div>
+   <div class="bar"><div id="riskBar"></div></div>
+   <div class="subtitle">Índice ilustrativo de 0 a 100. No es una alerta oficial.</div>
+   
+   <div class="sim-controls">
+    <label for="simRainInput">
+     Lluvia acumulada del escenario:
+     <b id="simRainValue">40 mm</b>
+    </label>
+    <input id="simRainInput" type="range" min="0" max="300" value="40" step="5">
+
+    <label for="simRiverInput">
+     Nivel de agua hipotético:
+     <b id="simRiverValue">1.5 m</b>
+    </label>
+    <input id="simRiverInput" type="range" min="0" max="15" value="1.5" step="0.1">
+
+    <label for="simDurationInput">
+     Duración del escenario:
+     <b id="simDurationValue">6 h</b>
+    </label>
+    <input id="simDurationInput" type="range" min="1" max="72" value="6" step="1">
+
+    <p class="note">Modifica las variables y ejecuta la simulación. Son parámetros hipotéticos, no lecturas de sensores ni pronósticos de inundación.</p>
+   </div>
+
+   <button id="simulate" style="margin-top:17px">▶ Ejecutar escenario</button>
+  </article>
+  <article class="card">
+   <div class="panel-head"><div><h3>🌊 Variables simuladas del río</h3><small>No son lecturas de sensores reales</small></div></div>
+   <div class="metric-label">NIVEL SIMULADO DEL AGUA</div>
+   <div class="metric-value" id="riverLevel">-- m</div>
+   <div class="metric-label">LLUVIA SIMULADA</div>
+   <div class="metric-value" id="simRain">-- mm</div>
+   <div class="metric-desc" id="simUpdated">Sin actualizar</div>
+  </article>
+ </section>
+
+ <section class="card" id="simulacion3d" style="margin-top:15px">
+  <div class="panel-head">
+   <div><h3>◈ Simulador 3D de inundación</h3><small>Modelo visual didáctico de terreno y aumento del agua</small></div>
+   <span class="tag">ESCENARIO VIRTUAL</span>
+  </div>
+  <div id="scene3d"></div>
+  <div class="controls">
+   <button id="play3d">▶ Iniciar simulación</button>
+   <button id="reset3d">↺ Reiniciar</button>
+   <label>Nivel del agua: <b id="waterLabel">25%</b></label>
+   <input type="range" id="waterLevel" min="0" max="100" value="25">
+  </div>
+  <p class="note">Este escenario 3D es una representación educativa. No usa topografía real, caudales medidos ni ecuaciones hidráulicas; no debe interpretarse como pronóstico de inundación.</p>
+ </section>
+
+ <footer>
+  <span>FLOODGUARD AI · Plataforma demostrativa nacional</span>
+  <span id="lastUpdate">Iniciando...</span>
+ </footer>
+</main>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script src="/static/app.js"></script>
+</body>
+</html>

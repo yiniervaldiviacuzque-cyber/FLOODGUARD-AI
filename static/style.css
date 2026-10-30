@@ -1,0 +1,83 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --bg:#081525;
+  --sidebar:#0c1b2d;
+  --panel:#11243a;
+  --border:#233b55;
+  --text:#edf5ff;
+  --muted:#8ca4bd;
+  --cyan:#36c5e6;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,Arial,sans-serif}
+.layout{min-height:100vh}
+.sidebar{width:245px;background:var(--sidebar);border-right:1px solid var(--border);position:fixed;inset:0 auto 0 0;padding:27px 17px;display:flex;flex-direction:column;z-index:5}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;letter-spacing:.5px;margin-bottom:55px}
+.logo span{color:var(--cyan)}
+.logo-icon{font-size:25px}
+.menu-label{font-size:10px;letter-spacing:1.4px;color:#617d99;margin:0 12px 15px}
+.nav{display:flex;gap:13px;padding:14px 13px;margin:3px 0;border-radius:9px;color:#9eb3c9;text-decoration:none;font-size:14px}
+.nav.active,.nav:hover{background:#163550;color:#54d0ed}
+.sidebar-bottom{margin-top:auto}
+.system-box{display:flex;align-items:center;gap:10px;background:#10273a;border:1px solid #24465c;border-radius:10px;padding:13px 10px}
+.online-dot,.simulation span{width:8px;height:8px;border-radius:50%;background:#43d99c;display:inline-block;box-shadow:0 0 10px #43d99c}
+.system-box strong{font-size:11px;display:block}
+.system-box small{font-size:10px;color:var(--muted)}
+.version{display:block;color:#607a95;margin:18px 4px 0;font-size:10px}
+.main{margin-left:245px;padding:30px 36px;max-width:1600px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:25px}
+.breadcrumb{font-size:11px;color:#748da8;margin-bottom:10px}
+.breadcrumb span{color:var(--cyan)}
+h1{font-size:26px;margin:0;font-weight:700}
+.top-actions{display:flex;align-items:center;gap:12px}
+.simulation,.live-label,.chart-tag,.map-tag{font-size:10px;letter-spacing:.5px;border:1px solid #66512c;background:#2d281c;color:#f4c66d;border-radius:20px;padding:9px 12px}
+.simulation span{width:6px;height:6px;margin-right:6px;background:#f4c66d;box-shadow:none}
+.refresh{border:0;border-radius:8px;background:#139fc3;color:white;font-weight:700;padding:12px 16px;cursor:pointer}
+.refresh:hover{background:#20b9df}
+.refresh:disabled{opacity:.6;cursor:wait}
+.welcome{padding:23px 25px;border:1px solid #20506c;border-radius:13px;background:linear-gradient(105deg,#10344c,#10243a 70%);display:flex;justify-content:space-between;align-items:center}
+.welcome h2{margin:0 0 8px;font-size:17px}
+.welcome p,.section-heading p,.panel-heading p{margin:0;color:var(--muted);font-size:12px;line-height:1.6}
+.welcome-icon{font-size:38px;opacity:.8}
+.section{margin-top:28px}
+.section-heading,.panel-heading{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.section-heading{margin-bottom:14px}
+.section-heading h2,.panel-heading h2{font-size:15px;margin:0 0 6px}
+.live-label{background:#112e2c;border-color:#20574d;color:#64dfb4}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.metric-card,.panel{background:var(--panel);border:1px solid var(--border);border-radius:12px}
+.metric-card{padding:18px}
+.metric-top{display:flex;align-items:center;justify-content:space-between;color:#91a9c2;font-size:10px;font-weight:700;letter-spacing:.5px}
+.metric-icon{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;font-size:17px}
+.blue{background:#163d5b}.cyan{background:#123d4b}.orange{background:#493321}.purple{background:#352b52}
+.metric-value{font-size:30px;font-weight:800;margin:18px 0 6px;letter-spacing:-1px}
+.metric-value small{font-size:14px;color:#9bb2c9;font-weight:500}
+.metric-description{font-size:11px;color:#7e98b2}
+.content-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:15px;margin-top:17px}
+.panel{padding:20px}
+.warning-icon{font-size:20px;color:#f1c46c}
+#riverChart{width:100%;height:205px;display:block;margin-top:15px}
+.chart-tag,.map-tag{background:#172b42;border-color:#2c4966;color:#9fc7df}
+.chart-legend{font-size:10px;color:#9ab0c6;display:flex;align-items:center;gap:7px}
+.chart-legend span{height:3px;width:17px;background:var(--cyan);display:inline-block;border-radius:5px}
+.risk-center{text-align:center;padding:22px 0 15px}
+.risk-number{font-size:48px;font-weight:800;letter-spacing:-2px}
+.risk-number small{font-size:15px;color:#829bb5;letter-spacing:0}
+.risk-status{font-size:12px;font-weight:800;letter-spacing:1.4px;color:#56dba5;margin-top:5px}
+.risk-center p{font-size:11px;color:#91a9c2;min-height:17px}
+.risk-track{height:9px;border-radius:20px;background:#263b53;overflow:hidden}
+#riskBar{height:100%;width:0;background:#55dca5;border-radius:20px;transition:width .5s}
+.risk-scale{display:flex;justify-content:space-between;color:#8099b2;font-size:9px;margin-top:8px}
+.map-panel{margin-top:17px}
+.map-illustration{height:260px;margin-top:17px;border-radius:9px;overflow:hidden;position:relative;background:#183b43}
+.map-grid{position:absolute;inset:0;background-image:linear-gradient(#ffffff0b 1px,transparent 1px),linear-gradient(90deg,#ffffff0b 1px,transparent 1px);background-size:35px 35px}
+.river-svg{position:absolute;width:100%;height:100%;inset:0}
+.station-pin{position:absolute;left:48%;top:36%;display:flex;align-items:center;gap:8px;font-size:10px;color:white}
+.station-pin span{width:17px;height:17px;background:#ffb85c;border:4px solid white;border-radius:50%;box-shadow:0 0 18px #ffb85c}
+.map-label{position:absolute;bottom:13px;left:13px;background:#071a2ddd;padding:9px 12px;border-radius:7px;font-size:10px}
+.map-compass{position:absolute;right:17px;top:15px;text-align:center;font-size:12px;font-weight:700}
+.map-note{font-size:10px;color:#8098b0;margin:10px 0 0}
+footer{display:flex;justify-content:space-between;color:#718aa4;font-size:10px;padding:23px 2px}
+@media(max-width:1100px){.sidebar{width:205px}.main{margin-left:205px;padding:25px 20px}.metrics{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:720px){.sidebar{position:relative;width:auto;height:auto;padding:15px}.logo{margin:0}.menu-label,.nav,.sidebar-bottom{display:none}.main{margin:0;padding:20px 14px}.topbar{align-items:flex-start;flex-direction:column}.top-actions{flex-wrap:wrap}.content-grid{grid-template-columns:1fr}.welcome{padding:18px}.metrics{gap:9px}.metric-card{padding:13px}.metric-value{font-size:25px}footer{gap:10px;flex-direction:column}}
